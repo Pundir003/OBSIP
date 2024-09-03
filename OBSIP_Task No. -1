@@ -1,0 +1,34 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.preprocessing import LabelEncoder
+
+df = pd.read_csv('C:/Users/ujjwa/Desktop/Iris.csv')
+
+print(df.head())
+print(df.shape)
+print(df.isnull().sum())
+print(df.describe())
+print(df['Species'].value_counts())
+
+le = LabelEncoder()
+df['Species'] = le.fit_transform(df['Species'])
+
+X = df.drop(columns=['Species', 'Id'])  # Dropping 'Id' column as it's not needed
+y = df['Species']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Train a model
+clf = DecisionTreeClassifier()
+clf.fit(X_train, y_train)
+
+y_pred = clf.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy * 100:.2f}%')
+print(classification_report(y_test, y_pred, target_names=le.classes_))
+
+new_data = pd.DataFrame([[5.1, 3.5, 1.4, 0.2]], columns=X.columns)  # Creating DataFrame with correct column names
+prediction = clf.predict(new_data)
+predicted_species = le.inverse_transform(prediction)
+print(f'Predicted species: {predicted_species[0]}')
