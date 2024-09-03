@@ -1,0 +1,28 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv('C:/Users/ujjwa/Desktop/Unemployment in India.csv')
+
+
+df.columns = df.columns.str.strip()
+
+# Explore the data
+print(df.head())
+print(df.shape)
+print(df.isnull().sum())
+print(df.describe())
+print(df.dtypes)
+
+df['Date'] = df['Date'].str.strip()
+df['Date'] = pd.to_datetime(df['Date'], format='%d-%m-%Y')
+
+unemployment_trends = df.groupby('Date')['Estimated Unemployment Rate (%)'].mean()
+print(unemployment_trends.head())
+
+plt.figure(figsize=(10, 5))
+plt.plot(unemployment_trends, marker='o', linestyle='-')
+plt.title('Unemployment Rate Trends in India')
+plt.xlabel('Date')
+plt.ylabel('Unemployment Rate (%)')
+plt.grid(True)
+plt.show()
