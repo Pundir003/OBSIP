@@ -1,0 +1,64 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+import numpy as np
+
+df = pd.read_csv("C:/Users/ujjwa/Desktop/car data.csv")
+
+print("First few rows of the dataset:")
+print(df.head())
+print("\nDataset info:")
+print(df.info())
+print("\nDescriptive statistics:")
+print(df.describe())
+
+df = df.dropna(subset=['Selling_Price'])
+
+df = df.fillna(method='ffill')
+
+label_encoders = {}
+categorical_columns = ['Fuel_Type', 'Selling_type', 'Transmission']  # Example categorical columns
+
+for column in categorical_columns:
+    le = LabelEncoder()
+    df[column] = le.fit_transform(df[column])
+    label_encoders[column] = le
+
+X = df.drop(['Selling_Price', 'Car_Name'], axis=1)  # Drop 'Car_Name' if it's not useful for prediction
+y = df['Selling_Price']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+model = RandomForestRegressor(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+mae = mean_absolute_error(y_test, y_pred)
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+
+print(f"\nMean Absolute Error: {mae}")
+print(f"Root Mean Squared Error: {rmse}")
+
+new_car = pd.DataFrame({
+    'Year': [2018],
+    'Present_Price': [8.50],
+    'Driven_kms': [20000],
+    'Fuel_Type': [label_encoders['Fuel_Type'].transform(['Petrol'])[0]],
+    'Selling_type': [label_encoders['Selling_type'].transform(['Dealer'])[0]],
+    'Transmission': [label_encoders['Transmission'].transform(['Manual'])[0]],
+    'Owner': [0]
+})
+
+new_car = pd.DataFrame(new_car, columns=X.columns)
+
+new_car_scaled = scaler.transform(new_car)
+
+predicted_price = model.predict(new_car_scaled)
+print(f"\nPredicted price for the new car: {predicted_price[0]}")
